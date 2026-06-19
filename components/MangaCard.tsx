@@ -3,8 +3,7 @@
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
-import { Star, BookOpen, Clock, CheckCircle2, PauseCircle } from 'lucide-react'
+import { Star, BookOpen, CheckCircle2, PauseCircle } from 'lucide-react'
 import type { Manga } from '@/lib/types'
 
 interface MangaCardProps {
@@ -18,12 +17,13 @@ const STATE_CONFIG = {
   hiatus:    { label: '휴재',    icon: PauseCircle,   color: 'text-amber-400' },
 }
 
-function RatingBar({ rate }: { rate: number }) {
-  const pct = (rate / 10) * 100
+function RatingBar({ rate }: { rate: number | string }) {
+  const rateNum = parseFloat(String(rate))
+  const pct = (rateNum / 10) * 100
   const color =
-    rate >= 8 ? 'bg-emerald-500' :
-    rate >= 6 ? 'bg-amber-500' :
-                'bg-rose-500'
+    rateNum >= 8 ? 'bg-emerald-500' :
+    rateNum >= 6 ? 'bg-amber-500' :
+                   'bg-rose-500'
 
   return (
     <div className="flex items-center gap-2 min-w-[120px]">
@@ -37,7 +37,7 @@ function RatingBar({ rate }: { rate: number }) {
         />
       </div>
       <span className="text-xs font-semibold tabular-nums text-foreground/80 w-7 text-right">
-        {rate.toFixed(1)}
+        {rateNum.toFixed(1)}
       </span>
     </div>
   )
