@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getPool } from '@/lib/db'
+import { getSql } from '@/lib/db'
 import type { SortField, SortOrder } from '@/lib/types'
 
 const ALLOWED_SORT_FIELDS: Record<string, string> = {
@@ -9,6 +9,9 @@ const ALLOWED_SORT_FIELDS: Record<string, string> = {
   name:    'name',
 }
 
+// neon() HTTP transport called as a regular function (sortCol/sortDir are allowlist-safe)
+type RawQuery = (q: string, p?: unknown[]) => Promise<unknown[]>
+
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = req.nextUrl
@@ -17,31 +20,32 @@ export async function GET(req: NextRequest) {
     const sortBy   = (searchParams.get('sortBy') as SortField)   ?? 'updated'
     const order    = (searchParams.get('sortOrder') as SortOrder) ?? 'desc'
 
-    const sortCol = ALLOWED_SORT_FIELDS[sortBy] ?? 'updated'
-    const sortDir = order === 'asc' ? 'ASC' : 'DESC'
-
+    const sortCol    = ALLOWED_SORT_FIELDS[sortBy] ?? 'updated'
+    const sortDir    = order === 'asc' ? 'ASC' : 'DESC'
     const orderClause = `ORDER BY ${sortCol} ${sortDir}`
     const likePattern = `%${query}%`
 
-    let result
+    const rawQuery = getSql() as unknown as RawQuery
+
+    let rows: unknown[]
     if (!query) {
-      result = await getPool().query(`SELECT * FROM manga ${orderClause}`)
+      rows = await rawQuery(`SELECT * FROM manga ${orderClause}`)
     } else if (searchBy === 'author') {
-      result = await getPool().query(
+      rows = await rawQuery(
         `SELECT * FROM manga
          WHERE EXISTS (SELECT 1 FROM unnest(author) a WHERE a ILIKE $1)
          ${orderClause}`,
         [likePattern]
       )
     } else if (searchBy === 'genre') {
-      result = await getPool().query(
+      rows = await rawQuery(
         `SELECT * FROM manga
          WHERE EXISTS (SELECT 1 FROM unnest(genre) g WHERE g ILIKE $1)
          ${orderClause}`,
         [likePattern]
       )
     } else {
-      result = await getPool().query(
+      rows = await rawQuery(
         `SELECT * FROM manga
          WHERE name ILIKE $1
             OR EXISTS (SELECT 1 FROM unnest(alias) al WHERE al ILIKE $1)
@@ -50,7 +54,7 @@ export async function GET(req: NextRequest) {
       )
     }
 
-    return NextResponse.json({ data: result.rows })
+    return NextResponse.json({ data: rows })
   } catch (err) {
     console.error('[GET /api/manga]', err)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
