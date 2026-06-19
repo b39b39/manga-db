@@ -53,7 +53,8 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ data: rows })
   } catch (err) {
-    console.error('[GET /api/manga]', err)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    const message = err instanceof Error ? err.message : String(err)
+    console.error('[GET /api/manga]', message)
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
