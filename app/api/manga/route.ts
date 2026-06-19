@@ -24,25 +24,26 @@ export async function GET(req: NextRequest) {
 
     const sql = getSql()
 
-    let rows: unknown[]
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let rows: any
     if (!query) {
-      rows = await sql(`SELECT * FROM manga ${orderClause}`)
+      rows = await sql.query(`SELECT * FROM manga ${orderClause}`)
     } else if (searchBy === 'author') {
-      rows = await sql(
+      rows = await sql.query(
         `SELECT * FROM manga
          WHERE EXISTS (SELECT 1 FROM unnest(author) a WHERE a ILIKE $1)
          ${orderClause}`,
         [likePattern]
       )
     } else if (searchBy === 'genre') {
-      rows = await sql(
+      rows = await sql.query(
         `SELECT * FROM manga
          WHERE EXISTS (SELECT 1 FROM unnest(genre) g WHERE g ILIKE $1)
          ${orderClause}`,
         [likePattern]
       )
     } else {
-      rows = await sql(
+      rows = await sql.query(
         `SELECT * FROM manga
          WHERE name ILIKE $1
             OR EXISTS (SELECT 1 FROM unnest(alias) al WHERE al ILIKE $1)
