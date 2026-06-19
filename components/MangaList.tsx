@@ -1,7 +1,9 @@
 'use client'
 
+import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import MangaCard from './MangaCard'
+import MangaModal from './MangaModal'
 import type { Manga } from '@/lib/types'
 import { BookOpen, Loader2 } from 'lucide-react'
 
@@ -11,6 +13,8 @@ interface MangaListProps {
 }
 
 export default function MangaList({ items, loading }: MangaListProps) {
+  const [selected, setSelected] = useState<Manga | null>(null)
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-24 gap-3 text-muted-foreground">
@@ -34,19 +38,28 @@ export default function MangaList({ items, loading }: MangaListProps) {
   }
 
   return (
-    <AnimatePresence mode="wait">
-      <motion.div
-        key={items.map((m) => m.id).join(',')}
-        className="flex flex-col gap-2.5"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.15 }}
-      >
-        {items.map((manga, i) => (
-          <MangaCard key={manga.id} manga={manga} index={i} />
-        ))}
-      </motion.div>
-    </AnimatePresence>
+    <>
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={items.map((m) => m.id).join(',')}
+          className="flex flex-col gap-2"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.15 }}
+        >
+          {items.map((manga, i) => (
+            <MangaCard
+              key={manga.id}
+              manga={manga}
+              index={i}
+              onClick={() => setSelected(manga)}
+            />
+          ))}
+        </motion.div>
+      </AnimatePresence>
+
+      <MangaModal manga={selected} onClose={() => setSelected(null)} />
+    </>
   )
 }
