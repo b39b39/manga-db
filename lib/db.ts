@@ -1,9 +1,10 @@
 import { neon } from '@neondatabase/serverless'
-import type { NeonQueryFunction } from '@neondatabase/serverless'
 
-let _sql: NeonQueryFunction<false, false> | null = null
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let _sql: any = null
 
-export function getSql(): NeonQueryFunction<false, false> {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function getSql(): (q: string, p?: unknown[]) => Promise<any[]> {
   if (!_sql) {
     if (!process.env.DATABASE_URL) {
       throw new Error('DATABASE_URL environment variable is not set')
