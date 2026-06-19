@@ -4,7 +4,6 @@ import { motion } from 'framer-motion'
 import Image from 'next/image'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { Star, BookOpen, CheckCircle2, PauseCircle, User, Calendar } from 'lucide-react'
 import type { Manga } from '@/lib/types'
 import { rateNum } from './MangaCard'
@@ -96,7 +95,7 @@ export default function MangaModal({ manga, onClose }: MangaModalProps) {
           </div>
         </div>
 
-        <ScrollArea className="max-h-[60vh]">
+        <div className="max-h-[60vh] overflow-y-auto">
           <div className="px-5 py-4 space-y-5">
 
             {/* State + Rating */}
@@ -159,7 +158,7 @@ export default function MangaModal({ manga, onClose }: MangaModalProps) {
             </div>
 
           </div>
-        </ScrollArea>
+        </div>
       </DialogContent>
     </Dialog>
   )
