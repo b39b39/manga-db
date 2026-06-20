@@ -5,8 +5,26 @@ import Image from 'next/image'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
 import { Star, BookOpen, CheckCircle2, PauseCircle, User, Calendar } from 'lucide-react'
-import type { Manga } from '@/lib/types'
+import type { Manga, MangaAuthor } from '@/lib/types'
 import { rateNum } from './MangaCard'
+
+/**
+ * 작가 배열을 정렬 후 포맷합니다.
+ * 순서: writer → illustrator → 속성없음, 그룹 내 사전순
+ * 출력: "A, B (글) / C, D (그림) / E"
+ */
+function formatAuthors(authors: MangaAuthor[], fallback: string[]): string {
+  if (!authors || authors.length === 0) return fallback.join(', ')
+  const sort = (arr: string[]) => [...arr].sort((a, b) => a.localeCompare(b, 'ko'))
+  const writers      = sort(authors.filter(a => a.role === 'writer').map(a => a.name))
+  const illustrators = sort(authors.filter(a => a.role === 'illustrator').map(a => a.name))
+  const others       = sort(authors.filter(a => a.role === '').map(a => a.name))
+  const parts: string[] = []
+  if (writers.length)      parts.push(`${writers.join(', ')} (글)`)
+  if (illustrators.length) parts.push(`${illustrators.join(', ')} (그림)`)
+  if (others.length)       parts.push(others.join(', '))
+  return parts.join(' / ')
+}
 
 interface MangaModalProps {
   manga: Manga | null
@@ -113,7 +131,9 @@ export default function MangaModal({ manga, onClose }: MangaModalProps) {
             {/* Authors */}
             <div className="flex items-start gap-2 text-sm">
               <User className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-0.5" />
-              <span className="text-foreground/80">{manga.author.join(', ')}</span>
+              <span className="text-foreground/80">
+                {formatAuthors(manga.authors, manga.author)}
+              </span>
             </div>
 
             {/* Genres */}

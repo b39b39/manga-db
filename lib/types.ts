@@ -1,10 +1,16 @@
 export type MangaState = 'ongoing' | 'completed' | 'hiatus'
 
+export interface MangaAuthor {
+  name: string
+  role: 'writer' | 'illustrator' | ''
+}
+
 export interface Manga {
   id: number
   name: string
   alias: string[]
   author: string[]
+  authors: MangaAuthor[]
   rate: number
   image: string
   icon: string
