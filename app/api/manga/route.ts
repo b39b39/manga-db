@@ -12,10 +12,12 @@ const ALLOWED_SORT_FIELDS: Record<string, string> = {
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = req.nextUrl
-    const query    = searchParams.get('query')?.trim() ?? ''
-    const searchBy = searchParams.get('searchBy') ?? 'name'
-    const sortBy   = (searchParams.get('sortBy') as SortField)   ?? 'updated'
-    const order    = (searchParams.get('sortOrder') as SortOrder) ?? 'desc'
+    const query     = searchParams.get('query')?.trim() ?? ''
+    const searchBy  = searchParams.get('searchBy') ?? 'name'
+    const sortBy    = (searchParams.get('sortBy') as SortField)   ?? 'updated'
+    const order     = (searchParams.get('sortOrder') as SortOrder) ?? 'desc'
+    const tagsParam = searchParams.get('tags') ?? ''
+    const tags      = tagsParam ? tagsParam.split(',').map(t => t.trim()).filter(Boolean) : []
 
     const sortCol     = ALLOWED_SORT_FIELDS[sortBy] ?? 'updated'
     const sortDir     = order === 'asc' ? 'ASC' : 'DESC'
@@ -24,33 +26,34 @@ export async function GET(req: NextRequest) {
 
     const sql = getSql()
 
+    // Build WHERE clause dynamically
+    const conds: string[] = []
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let rows: any
-    if (!query) {
-      rows = await sql.query(`SELECT * FROM manga ${orderClause}`)
-    } else if (searchBy === 'author') {
-      rows = await sql.query(
-        `SELECT * FROM manga
-         WHERE EXISTS (SELECT 1 FROM unnest(author) a WHERE a ILIKE $1)
-         ${orderClause}`,
-        [likePattern]
-      )
-    } else if (searchBy === 'genre') {
-      rows = await sql.query(
-        `SELECT * FROM manga
-         WHERE EXISTS (SELECT 1 FROM unnest(genre) g WHERE g ILIKE $1)
-         ${orderClause}`,
-        [likePattern]
-      )
-    } else {
-      rows = await sql.query(
-        `SELECT * FROM manga
-         WHERE name ILIKE $1
-            OR EXISTS (SELECT 1 FROM unnest(alias) al WHERE al ILIKE $1)
-         ${orderClause}`,
-        [likePattern]
-      )
+    const vals: any[] = []
+
+    if (query) {
+      vals.push(likePattern)
+      const n = vals.length
+      if (searchBy === 'author') {
+        conds.push(`EXISTS (SELECT 1 FROM unnest(author) a WHERE a ILIKE $${n})`)
+      } else if (searchBy === 'genre') {
+        conds.push(`EXISTS (SELECT 1 FROM unnest(genre) g WHERE g ILIKE $${n})`)
+      } else {
+        conds.push(`(name ILIKE $${n} OR EXISTS (SELECT 1 FROM unnest(alias) al WHERE al ILIKE $${n}))`)
+      }
     }
+
+    if (tags.length > 0) {
+      vals.push(tags)
+      // @> : 왼쪽 배열이 오른쪽 배열의 모든 요소를 포함 (AND 교집합)
+      conds.push(`genre @> $${vals.length}::text[]`)
+    }
+
+    const where = conds.length > 0 ? `WHERE ${conds.join(' AND ')}` : ''
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const rows = (vals.length
+      ? await sql.query(`SELECT * FROM manga ${where} ${orderClause}`, vals)
+      : await sql.query(`SELECT * FROM manga ${orderClause}`)) as unknown as any[]
 
     return NextResponse.json({ data: rows })
   } catch (err) {

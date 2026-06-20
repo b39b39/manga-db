@@ -13,6 +13,7 @@ const DEFAULT_FILTER: Required<FilterParams> = {
   searchBy:  'name',
   sortBy:    'updated',
   sortOrder: 'desc',
+  tags:      [],
 }
 
 function useDebounce<T>(value: T, delay: number): T {
@@ -45,6 +46,7 @@ export default function HomePage() {
         sortBy:    f.sortBy,
         sortOrder: f.sortOrder,
       })
+      if (f.tags.length > 0) params.set('tags', f.tags.join(','))
       const res  = await fetch(`/api/manga?${params}`, { signal: ctrl.signal })
       const json = await res.json()
       setItems(json.data ?? [])
@@ -58,7 +60,7 @@ export default function HomePage() {
   useEffect(() => {
     fetchManga({ ...filter, query: debouncedQuery })
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedQuery, filter.searchBy, filter.sortBy, filter.sortOrder])
+  }, [debouncedQuery, filter.searchBy, filter.sortBy, filter.sortOrder, filter.tags.join(',')])
 
   const update = <K extends keyof FilterParams>(key: K, val: FilterParams[K]) =>
     setFilter((prev) => ({ ...prev, [key]: val }))
@@ -94,9 +96,11 @@ export default function HomePage() {
               searchBy={filter.searchBy}
               sortBy={filter.sortBy}
               sortOrder={filter.sortOrder}
+              selectedTags={filter.tags}
               onSearchByChange={(v)  => update('searchBy',  v)}
               onSortByChange={(v)    => update('sortBy',    v)}
               onSortOrderChange={(v) => update('sortOrder', v)}
+              onTagsChange={(tags)   => update('tags', tags)}
             />
           </div>
 
@@ -104,6 +108,11 @@ export default function HomePage() {
           {!loading && (
             <p className="text-xs text-muted-foreground px-0.5">
               총 <span className="font-medium text-foreground">{items.length}</span>개
+              {filter.tags.length > 0 && (
+                <span className="ml-1 text-primary/80">
+                  (태그: {filter.tags.join(' + ')})
+                </span>
+              )}
             </p>
           )}
         </section>

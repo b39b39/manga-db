@@ -24,4 +24,5 @@ export interface FilterParams {
   searchBy?: 'name' | 'author' | 'genre'
   sortBy?: SortField
   sortOrder?: SortOrder
+  tags?: string[]
 }
