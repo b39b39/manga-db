@@ -70,29 +70,28 @@ export default function MangaCard({ manga, index, onClick }: MangaCardProps) {
       transition={{ duration: 0.3, delay: index * 0.04, ease: 'easeOut' }}
       whileHover={{ scale: 1.003 }}
       onClick={onClick}
-      className="group relative flex items-center gap-3 rounded-xl border border-white/8
-                 bg-card/60 backdrop-blur-sm px-4 py-3 shadow-sm
+      className="group relative flex items-stretch rounded-xl border border-white/8
+                 bg-card/60 backdrop-blur-sm shadow-sm overflow-hidden
                  hover:border-white/20 hover:bg-card/80 hover:shadow-md
                  transition-colors duration-150 cursor-pointer"
     >
-      {/* Left accent — rate color on hover */}
-      <div className={`absolute left-0 top-3 bottom-3 w-0.5 rounded-full opacity-0
+      {/* Left accent — rate color on hover, sits above icon */}
+      <div className={`absolute left-0 top-0 bottom-0 w-0.5 z-10 opacity-0
                        group-hover:opacity-100 transition-opacity ${accentClass}`} />
 
-      {/* Icon */}
-      <div className="relative flex-shrink-0 w-10 h-10 rounded-lg overflow-hidden
-                      border border-white/10 bg-white/5">
+      {/* Icon — flush left/top/bottom, full card height */}
+      <div className="relative flex-shrink-0 w-16 bg-white/5">
         {manga.icon ? (
-          <Image src={manga.icon} alt={manga.name} fill className="object-cover" sizes="40px" />
+          <Image src={manga.icon} alt={manga.name} fill className="object-cover" sizes="64px" />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-white/20">
-            <BookOpen className="w-4 h-4" />
+            <BookOpen className="w-5 h-5" />
           </div>
         )}
       </div>
 
       {/* Content: title row + tags row */}
-      <div className="flex-1 min-w-0 flex flex-col gap-1">
+      <div className="flex-1 min-w-0 flex flex-col justify-center gap-1 px-4 py-3">
         {/* Title row */}
         <div className="flex items-center gap-2">
           <p className={`flex-1 font-semibold text-sm truncate text-foreground transition-colors ${rateTitleHoverClass(n)}`}>
