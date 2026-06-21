@@ -20,10 +20,10 @@ const STATE_CONFIG = {
 
 function rateTitleHoverClass(n: number): string {
   if (n >= 9.0) return 'group-hover:text-violet-400'
-  if (n >= 7.5) return 'group-hover:text-blue-400'
-  if (n >= 6.0) return 'group-hover:text-emerald-400'
-  if (n >= 4.0) return 'group-hover:text-amber-400'
-  return 'group-hover:text-rose-400'
+  if (n >= 7.5) return 'group-hover:text-rose-400'
+  if (n >= 6.0) return 'group-hover:text-amber-400'
+  if (n >= 4.0) return 'group-hover:text-emerald-400'
+  return 'group-hover:text-blue-400'
 }
 
 export function rateNum(rate: number | string) {
@@ -32,18 +32,18 @@ export function rateNum(rate: number | string) {
 
 export function rateColor(n: number): string {
   if (n >= 9.0) return 'text-violet-400'
-  if (n >= 7.5) return 'text-blue-400'
-  if (n >= 6.0) return 'text-emerald-400'
-  if (n >= 4.0) return 'text-amber-400'
-  return 'text-rose-400'
+  if (n >= 7.5) return 'text-rose-400'
+  if (n >= 6.0) return 'text-amber-400'
+  if (n >= 4.0) return 'text-emerald-400'
+  return 'text-blue-400'
 }
 
 export function rateBarColor(n: number): string {
   if (n >= 9.0) return 'bg-violet-500'
-  if (n >= 7.5) return 'bg-blue-500'
-  if (n >= 6.0) return 'bg-emerald-500'
-  if (n >= 4.0) return 'bg-amber-500'
-  return 'bg-rose-500'
+  if (n >= 7.5) return 'bg-rose-500'
+  if (n >= 6.0) return 'bg-amber-500'
+  if (n >= 4.0) return 'bg-emerald-500'
+  return 'bg-blue-500'
 }
 
 function RateBadge({ rate }: { rate: number | string }) {
@@ -58,10 +58,14 @@ function RateBadge({ rate }: { rate: number | string }) {
 }
 
 export default function MangaCard({ manga, index, onClick }: MangaCardProps) {
-  const stateConf  = STATE_CONFIG[manga.state]
-  const StateIcon  = stateConf.icon
-  const n          = rateNum(manga.rate)
+  const stateConf   = STATE_CONFIG[manga.state]
+  const StateIcon   = stateConf.icon
+  const n           = rateNum(manga.rate)
   const accentClass = rateBarColor(n)
+  const isElite     = n >= 9.0
+  const borderClass = isElite
+    ? 'border-violet-500/60 hover:border-violet-500/90 shadow-[0_0_0_1px_rgba(139,92,246,0.15)]'
+    : 'border-white/8 hover:border-white/20'
 
   return (
     <motion.article
@@ -70,10 +74,10 @@ export default function MangaCard({ manga, index, onClick }: MangaCardProps) {
       transition={{ duration: 0.3, delay: index * 0.04, ease: 'easeOut' }}
       whileHover={{ scale: 1.003 }}
       onClick={onClick}
-      className="group relative flex items-stretch rounded-xl border border-white/8
+      className={`group relative flex items-stretch rounded-xl border
                  bg-card/60 backdrop-blur-sm shadow-sm overflow-hidden
-                 hover:border-white/20 hover:bg-card/80 hover:shadow-md
-                 transition-colors duration-150 cursor-pointer"
+                 hover:bg-card/80 hover:shadow-md
+                 transition-colors duration-150 cursor-pointer ${borderClass}`}
     >
       {/* Left accent — rate color on hover, sits above icon */}
       <div className={`absolute left-0 top-0 bottom-0 w-0.5 z-10 opacity-0
