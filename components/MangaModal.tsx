@@ -72,8 +72,8 @@ export default function MangaModal({ manga, onClose }: MangaModalProps) {
         이미지는 좌측에 동적으로 추가 — 세로 전체 높이를 채우며 가로는 자연 비율에 맞춤.
         dialog 자체는 max-w-[90vw]로 열어 이미지+콘텐츠 합산 너비를 수용.
       */}
-      <DialogContent className="max-w-[90vw] w-fit p-0 overflow-hidden bg-card border-white/10
-                                gap-0 h-[80vh] max-h-[680px] flex flex-row">
+      <DialogContent className="max-w-[90vw] sm:max-w-[90vw] w-fit sm:w-fit p-0 overflow-hidden
+                                bg-card border-white/10 gap-0 h-[80vh] max-h-[680px] flex flex-row">
         <DialogTitle className="sr-only">{manga.name}</DialogTitle>
 
         {/* Left: cover image — natural aspect ratio, no cropping */}
