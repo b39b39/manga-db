@@ -13,9 +13,17 @@ interface MangaCardProps {
 }
 
 const STATE_CONFIG = {
-  ongoing:   { label: '연재 중', icon: BookOpen,     color: 'text-emerald-400', accent: 'bg-emerald-500' },
-  completed: { label: '완결됨',  icon: CheckCircle2, color: 'text-blue-400',    accent: 'bg-blue-500' },
-  hiatus:    { label: '휴재 중', icon: PauseCircle,  color: 'text-amber-400',   accent: 'bg-amber-500' },
+  ongoing:   { label: '연재', icon: BookOpen,     color: 'text-emerald-400' },
+  completed: { label: '완결', icon: CheckCircle2, color: 'text-blue-400'    },
+  hiatus:    { label: '휴재', icon: PauseCircle,  color: 'text-amber-400'   },
+}
+
+function rateTitleHoverClass(n: number): string {
+  if (n >= 9.0) return 'group-hover:text-violet-400'
+  if (n >= 7.5) return 'group-hover:text-blue-400'
+  if (n >= 6.0) return 'group-hover:text-emerald-400'
+  if (n >= 4.0) return 'group-hover:text-amber-400'
+  return 'group-hover:text-rose-400'
 }
 
 export function rateNum(rate: number | string) {
@@ -50,8 +58,10 @@ function RateBadge({ rate }: { rate: number | string }) {
 }
 
 export default function MangaCard({ manga, index, onClick }: MangaCardProps) {
-  const stateConf = STATE_CONFIG[manga.state]
-  const StateIcon = stateConf.icon
+  const stateConf  = STATE_CONFIG[manga.state]
+  const StateIcon  = stateConf.icon
+  const n          = rateNum(manga.rate)
+  const accentClass = rateBarColor(n)
 
   return (
     <motion.article
@@ -65,9 +75,9 @@ export default function MangaCard({ manga, index, onClick }: MangaCardProps) {
                  hover:border-white/20 hover:bg-card/80 hover:shadow-md
                  transition-colors duration-150 cursor-pointer"
     >
-      {/* Left accent */}
+      {/* Left accent — rate color on hover */}
       <div className={`absolute left-0 top-3 bottom-3 w-0.5 rounded-full opacity-0
-                       group-hover:opacity-100 transition-opacity ${stateConf.accent}`} />
+                       group-hover:opacity-100 transition-opacity ${accentClass}`} />
 
       {/* Icon */}
       <div className="relative flex-shrink-0 w-10 h-10 rounded-lg overflow-hidden
@@ -85,7 +95,7 @@ export default function MangaCard({ manga, index, onClick }: MangaCardProps) {
       <div className="flex-1 min-w-0 flex flex-col gap-1">
         {/* Title row */}
         <div className="flex items-center gap-2">
-          <p className="flex-1 font-semibold text-sm truncate text-foreground group-hover:text-primary transition-colors">
+          <p className={`flex-1 font-semibold text-sm truncate text-foreground transition-colors ${rateTitleHoverClass(n)}`}>
             {manga.name}
           </p>
           {/* State badge */}

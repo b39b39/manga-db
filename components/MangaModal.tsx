@@ -32,9 +32,9 @@ interface MangaModalProps {
 }
 
 const STATE_CONFIG = {
-  ongoing:   { label: '연재 중', icon: BookOpen,     color: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/30' },
-  completed: { label: '완결됨',  icon: CheckCircle2, color: 'text-blue-400',    bg: 'bg-blue-500/10 border-blue-500/30' },
-  hiatus:    { label: '휴재 중', icon: PauseCircle,  color: 'text-amber-400',   bg: 'bg-amber-500/10 border-amber-500/30' },
+  ongoing:   { label: '연재', icon: BookOpen,     color: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/30' },
+  completed: { label: '완결', icon: CheckCircle2, color: 'text-blue-400',    bg: 'bg-blue-500/10 border-blue-500/30' },
+  hiatus:    { label: '휴재', icon: PauseCircle,  color: 'text-amber-400',   bg: 'bg-amber-500/10 border-amber-500/30' },
 }
 
 function RatingBar({ rate }: { rate: number | string }) {
@@ -67,28 +67,30 @@ export default function MangaModal({ manga, onClose }: MangaModalProps) {
 
   return (
     <Dialog open={!!manga} onOpenChange={(open) => { if (!open) onClose() }}>
-      <DialogContent className="max-w-3xl p-0 overflow-hidden bg-card border-white/10 gap-0 h-[80vh] max-h-[680px] flex flex-row">
+      {/*
+        콘텐츠 영역은 원래 modal 너비(max-w-2xl ≈ 42rem)를 고정 확보.
+        이미지는 좌측에 동적으로 추가 — 세로 전체 높이를 채우며 가로는 자연 비율에 맞춤.
+        dialog 자체는 max-w-[90vw]로 열어 이미지+콘텐츠 합산 너비를 수용.
+      */}
+      <DialogContent className="max-w-[90vw] w-fit p-0 overflow-hidden bg-card border-white/10
+                                gap-0 h-[80vh] max-h-[680px] flex flex-row">
         <DialogTitle className="sr-only">{manga.name}</DialogTitle>
 
-        {/* Left column: cover image */}
-        <div className="w-56 flex-shrink-0 relative bg-white/5">
-          {manga.image ? (
-            <Image
+        {/* Left: cover image — natural aspect ratio, no cropping */}
+        {manga.image && (
+          <div className="flex-shrink-0 h-full overflow-hidden bg-white/5">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
               src={manga.image}
               alt={manga.name}
-              fill
-              className="object-cover object-center"
-              sizes="224px"
+              className="h-full w-auto block"
+              style={{ maxWidth: 'min(45vw, 480px)' }}
             />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-white/10">
-              <BookOpen className="w-16 h-16" />
-            </div>
-          )}
-        </div>
+          </div>
+        )}
 
-        {/* Right column */}
-        <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Right: content — fixed width matching original modal (max-w-2xl) */}
+        <div className="w-[42rem] flex-shrink-0 flex flex-col overflow-hidden">
 
           {/* Header */}
           <div className="px-5 pt-5 pb-4 border-b border-white/8 flex-shrink-0">
