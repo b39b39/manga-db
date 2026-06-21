@@ -2,18 +2,18 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Separator } from '@/components/ui/separator'
-import SearchBar from '@/components/SearchBar'
 import FilterControls from '@/components/FilterControls'
 import MangaList from '@/components/MangaList'
 import type { FilterParams, Manga } from '@/lib/types'
 import { BookMarked } from 'lucide-react'
 
 const DEFAULT_FILTER: Required<FilterParams> = {
-  query:     '',
-  searchBy:  'name',
-  sortBy:    'updated',
-  sortOrder: 'desc',
-  tags:      [],
+  query:       '',
+  searchBy:    'name',
+  sortBy:      'updated',
+  sortOrder:   'desc',
+  tags:        [],
+  authorQuery: '',
 }
 
 function useDebounce<T>(value: T, delay: number): T {
@@ -31,9 +31,10 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true)
   const abortRef = useRef<AbortController | null>(null)
 
-  const debouncedQuery = useDebounce(filter.query, 350)
+  const debouncedQuery       = useDebounce(filter.query, 350)
+  const debouncedAuthorQuery = useDebounce(filter.authorQuery ?? '', 350)
 
-  const fetchManga = useCallback(async (f: Required<FilterParams>) => {
+  const fetchManga = useCallback(async (f: Required<FilterParams>, dAuthorQuery: string) => {
     abortRef.current?.abort()
     const ctrl = new AbortController()
     abortRef.current = ctrl
@@ -47,6 +48,7 @@ export default function HomePage() {
         sortOrder: f.sortOrder,
       })
       if (f.tags.length > 0) params.set('tags', f.tags.join(','))
+      if (dAuthorQuery)       params.set('authorQuery', dAuthorQuery)
       const res  = await fetch(`/api/manga?${params}`, { signal: ctrl.signal })
       const json = await res.json()
       setItems(json.data ?? [])
@@ -58,9 +60,9 @@ export default function HomePage() {
   }, [])
 
   useEffect(() => {
-    fetchManga({ ...filter, query: debouncedQuery })
+    fetchManga({ ...filter, query: debouncedQuery }, debouncedAuthorQuery)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedQuery, filter.searchBy, filter.sortBy, filter.sortOrder, filter.tags.join(',')])
+  }, [debouncedQuery, debouncedAuthorQuery, filter.searchBy, filter.sortBy, filter.sortOrder, filter.tags.join(',')])
 
   const update = <K extends keyof FilterParams>(key: K, val: FilterParams[K]) =>
     setFilter((prev) => ({ ...prev, [key]: val }))
@@ -82,27 +84,18 @@ export default function HomePage() {
       <main className="max-w-4xl mx-auto px-4 py-6 space-y-5">
         {/* Controls bar */}
         <section className="space-y-3">
-          <div className="flex flex-wrap gap-2 items-center">
-            <SearchBar
-              value={filter.query}
-              onChange={(v) => update('query', v)}
-              placeholder={
-                filter.searchBy === 'name'   ? '제목 또는 별명 검색...' :
-                filter.searchBy === 'author' ? '작가명 검색...' :
-                                               '장르 검색...'
-              }
-            />
-            <FilterControls
-              searchBy={filter.searchBy}
-              sortBy={filter.sortBy}
-              sortOrder={filter.sortOrder}
-              selectedTags={filter.tags}
-              onSearchByChange={(v)  => update('searchBy',  v)}
-              onSortByChange={(v)    => update('sortBy',    v)}
-              onSortOrderChange={(v) => update('sortOrder', v)}
-              onTagsChange={(tags)   => update('tags', tags)}
-            />
-          </div>
+          <FilterControls
+            query={filter.query}
+            onQueryChange={(v) => update('query', v)}
+            sortBy={filter.sortBy}
+            sortOrder={filter.sortOrder}
+            selectedTags={filter.tags}
+            authorQuery={filter.authorQuery ?? ''}
+            onSortByChange={(v)     => update('sortBy',      v)}
+            onSortOrderChange={(v)  => update('sortOrder',   v)}
+            onTagsChange={(tags)    => update('tags',        tags)}
+            onAuthorQueryChange={(v) => update('authorQuery', v)}
+          />
 
           {/* Result count */}
           {!loading && (
@@ -111,6 +104,11 @@ export default function HomePage() {
               {filter.tags.length > 0 && (
                 <span className="ml-1 text-primary/80">
                   (태그: {filter.tags.join(' + ')})
+                </span>
+              )}
+              {(filter.authorQuery ?? '').length > 0 && (
+                <span className="ml-1 text-primary/80">
+                  (작가: {filter.authorQuery})
                 </span>
               )}
             </p>

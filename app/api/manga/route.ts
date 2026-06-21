@@ -12,12 +12,13 @@ const ALLOWED_SORT_FIELDS: Record<string, string> = {
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = req.nextUrl
-    const query     = searchParams.get('query')?.trim() ?? ''
-    const searchBy  = searchParams.get('searchBy') ?? 'name'
-    const sortBy    = (searchParams.get('sortBy') as SortField)   ?? 'updated'
-    const order     = (searchParams.get('sortOrder') as SortOrder) ?? 'desc'
-    const tagsParam = searchParams.get('tags') ?? ''
-    const tags      = tagsParam ? tagsParam.split(',').map(t => t.trim()).filter(Boolean) : []
+    const query       = searchParams.get('query')?.trim() ?? ''
+    const searchBy    = searchParams.get('searchBy') ?? 'name'
+    const sortBy      = (searchParams.get('sortBy') as SortField)   ?? 'updated'
+    const order       = (searchParams.get('sortOrder') as SortOrder) ?? 'desc'
+    const tagsParam   = searchParams.get('tags') ?? ''
+    const tags        = tagsParam ? tagsParam.split(',').map(t => t.trim()).filter(Boolean) : []
+    const authorQuery = searchParams.get('authorQuery')?.trim() ?? ''
 
     const sortCol     = ALLOWED_SORT_FIELDS[sortBy] ?? 'updated'
     const sortDir     = order === 'asc' ? 'ASC' : 'DESC'
@@ -47,6 +48,11 @@ export async function GET(req: NextRequest) {
       vals.push(tags)
       // @> : 왼쪽 배열이 오른쪽 배열의 모든 요소를 포함 (AND 교집합)
       conds.push(`genre @> $${vals.length}::text[]`)
+    }
+
+    if (authorQuery) {
+      vals.push(`%${authorQuery}%`)
+      conds.push(`EXISTS (SELECT 1 FROM unnest(author) a WHERE a ILIKE $${vals.length})`)
     }
 
     const where = conds.length > 0 ? `WHERE ${conds.join(' AND ')}` : ''

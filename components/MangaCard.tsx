@@ -13,18 +13,34 @@ interface MangaCardProps {
 }
 
 const STATE_CONFIG = {
-  ongoing:   { label: '연재중', icon: BookOpen,     color: 'text-emerald-400', accent: 'bg-emerald-500' },
-  completed: { label: '완결',   icon: CheckCircle2, color: 'text-blue-400',    accent: 'bg-blue-500' },
-  hiatus:    { label: '휴재',   icon: PauseCircle,  color: 'text-amber-400',   accent: 'bg-amber-500' },
+  ongoing:   { label: '연재 중', icon: BookOpen,     color: 'text-emerald-400', accent: 'bg-emerald-500' },
+  completed: { label: '완결됨',  icon: CheckCircle2, color: 'text-blue-400',    accent: 'bg-blue-500' },
+  hiatus:    { label: '휴재 중', icon: PauseCircle,  color: 'text-amber-400',   accent: 'bg-amber-500' },
 }
 
 export function rateNum(rate: number | string) {
   return parseFloat(String(rate))
 }
 
+export function rateColor(n: number): string {
+  if (n >= 9.0) return 'text-violet-400'
+  if (n >= 7.5) return 'text-blue-400'
+  if (n >= 6.0) return 'text-emerald-400'
+  if (n >= 4.0) return 'text-amber-400'
+  return 'text-rose-400'
+}
+
+export function rateBarColor(n: number): string {
+  if (n >= 9.0) return 'bg-violet-500'
+  if (n >= 7.5) return 'bg-blue-500'
+  if (n >= 6.0) return 'bg-emerald-500'
+  if (n >= 4.0) return 'bg-amber-500'
+  return 'bg-rose-500'
+}
+
 function RateBadge({ rate }: { rate: number | string }) {
   const n = rateNum(rate)
-  const color = n >= 8 ? 'text-emerald-400' : n >= 6 ? 'text-amber-400' : 'text-rose-400'
+  const color = rateColor(n)
   return (
     <span className={`flex items-center gap-1 text-xs font-semibold tabular-nums ${color}`}>
       <Star className="w-3 h-3" fill="currentColor" />
@@ -65,38 +81,42 @@ export default function MangaCard({ manga, index, onClick }: MangaCardProps) {
         )}
       </div>
 
-      {/* Name */}
-      <div className="flex-1 min-w-0">
-        <p className="font-semibold text-sm truncate text-foreground group-hover:text-primary transition-colors">
-          {manga.name}
-        </p>
-      </div>
+      {/* Content: title row + tags row */}
+      <div className="flex-1 min-w-0 flex flex-col gap-1">
+        {/* Title row */}
+        <div className="flex items-center gap-2">
+          <p className="flex-1 font-semibold text-sm truncate text-foreground group-hover:text-primary transition-colors">
+            {manga.name}
+          </p>
+          {/* State badge */}
+          <div className={`flex-shrink-0 flex items-center gap-1 text-xs font-medium ${stateConf.color}`}>
+            <StateIcon className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">{stateConf.label}</span>
+          </div>
+        </div>
 
-      {/* Genres */}
-      <div className="hidden sm:flex items-center gap-1 flex-shrink-0">
-        {manga.genre.slice(0, 3).map((g) => (
-          <Badge
-            key={g}
-            variant="secondary"
-            className="text-[10px] px-1.5 py-0 h-4 font-normal bg-white/8
-                       text-muted-foreground border-white/10"
-          >
-            {g}
-          </Badge>
-        ))}
-        {manga.genre.length > 3 && (
-          <span className="text-[10px] text-muted-foreground">+{manga.genre.length - 3}</span>
-        )}
+        {/* Bottom row: genre chips + rate */}
+        <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 flex-wrap">
+            {manga.genre.slice(0, 4).map((g) => (
+              <Badge
+                key={g}
+                variant="secondary"
+                className="text-[10px] px-1.5 py-0 h-4 font-normal bg-white/8
+                           text-muted-foreground border-white/10"
+              >
+                {g}
+              </Badge>
+            ))}
+            {manga.genre.length > 4 && (
+              <span className="text-[10px] text-muted-foreground">+{manga.genre.length - 4}</span>
+            )}
+          </div>
+          <div className="ml-auto flex-shrink-0">
+            <RateBadge rate={manga.rate} />
+          </div>
+        </div>
       </div>
-
-      {/* State */}
-      <div className={`flex-shrink-0 flex items-center gap-1 text-xs font-medium ${stateConf.color}`}>
-        <StateIcon className="w-3.5 h-3.5" />
-        <span className="hidden md:inline">{stateConf.label}</span>
-      </div>
-
-      {/* Rate */}
-      <RateBadge rate={manga.rate} />
     </motion.article>
   )
 }

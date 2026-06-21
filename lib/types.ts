@@ -31,4 +31,5 @@ export interface FilterParams {
   sortBy?: SortField
   sortOrder?: SortOrder
   tags?: string[]
+  authorQuery?: string
 }
